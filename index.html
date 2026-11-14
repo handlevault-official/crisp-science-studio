@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ScienceStudio — Lab Calculator &amp; Unit Converter</title>
+<meta name="description" content="Local-first science workshop, lab solvers, and unit converter for students and researchers. Part of the Crisp Suite.">
+<meta name="theme-color" content="#090d16" id="metaThemeColor">
+<script src="https://cdn.tailwindcss.com"></script> 
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* Night Shift & Relaxing Ergonomic Theme (Default) */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #090d16;
+  --card: #101726;
+  --ink: #e2e8f0;
+  --mute: #8a99b5;
+  --accent: #10b981; /* Emerald green theme for science */
+  --accent-ink: #0f172a;
+  --warn: #fbbf24;
+  --bad: #f87171;
+  --line: #23314d;
+  --field: #0b111e;
+  --btn-bg: #19243b;
+  --btn-hover: #22314f;
+  --btn-line: #3f5580;
+}
+
+/* Day Shift / Light Mode */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f7fb;
+  --card: #ffffff;
+  --ink: #0f1a2e;
+  --mute: #53627d;
+  --accent: #059669;
+  --accent-ink: #ffffff;
+  --warn: #a16207;
+  --bad: #b91c1c;
+  --line: #cbd5e1;
+  --field: #f8fafd;
+  --btn-bg: #ffffff;
+  --btn-hover: #f1f5f9;
+  --btn-line: #94a3b8;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 16px/1.5 'Plus Jakarta Sans', system-ui, sans-serif;
+  padding: 16px 12px 32px;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+button, input, select { font: inherit; color: inherit; }
+
+button {
+  cursor: pointer;
+  border: 1.5px solid var(--btn-line);
+  background: var(--btn-bg);
+  color: var(--ink);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: all 0.15s ease;
+}
+button:hover:not(:disabled) {
+  background: var(--btn-hover);
+  border-color: var(--accent);
+}
+button.primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: transparent;
+  font-weight: 700;
+}
+button.primary:hover:not(:disabled) { filter: brightness(1.08); }
+button.danger {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--bad);
+  border-color: rgba(248, 113, 113, 0.5);
+}
+
+input, select {
+  width: 100%;
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  color: var(--ink);
+  outline: none;
+}
+input:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+label { display: block; font-size: 13px; color: var(--mute); margin-bottom: 4px; font-weight: 600; }
+
+header.top {
+  max-width: 900px;
+  margin: 0 auto 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+.brand { font-weight: 800; color: var(--accent); font-size: 1.2rem; letter-spacing: -0.02em; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.tabs button { padding: 8px 14px; min-height: 38px; font-size: 14px; }
+.tabs button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }
+
+main { max-width: 900px; margin: 0 auto; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.hint { color: var(--mute); font-size: 13px; margin: 4px 0; }
+
+@media(max-width: 768px) {
+  .grid2 { grid-template-columns: 1fr; }
+  header.top { flex-direction: column; align-items: stretch; }
+  .tabs { justify-content: stretch; }
+  .tabs button { flex: 1; }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <span class="brand">🔬 ScienceStudio</span>
+    <p class="hint" style="margin:0;">Crisp Suite / HandleVault Utility</p>
+  </div>
+  <nav class="tabs" aria-label="Sections">
+    <button data-tab="solvers" class="on">Lab Solvers</button>
+    <button data-tab="converter">Unit Converter</button>
+    <button data-tab="settings">About</button>
+  </nav>
+  <div class="row">
+    <button id="btnThemeToggle" type="button" style="padding:8px 12px;min-height:38px;font-size:13px;">🌙 Night Shift</button>
+  </div>
+</header>
+
+<main>
+  <!-- TAB 1: LAB SOLVERS -->
+  <section id="tab-solvers">
+    <div class="card grid2">
+      <div>
+        <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Density Solver (d = m/v)</h2>
+        <div style="margin-bottom: 12px;">
+          <label for="massInput">Mass (g)</label>
+          <input id="massInput" type="number" step="any" value="50">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label for="volInput">Volume (cm³ or mL)</label>
+          <input id="volInput" type="number" step="any" value="25">
+        </div>
+        <div style="background:var(--field); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <div class="row" style="justify-content: space-between;"><span class="hint">Calculated Density:</span> <strong id="resDensity" style="color:var(--accent); font-size:18px;">2.00 g/cm³</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Ideal Gas Law (PV = nRT)</h2>
+        <div style="margin-bottom: 8px;">
+          <label for="molesInput">Moles (n)</label>
+          <input id="molesInput" type="number" step="any" value="1">
+        </div>
+        <div style="margin-bottom: 8px;">
+          <label for="tempInput">Temperature (°C)</label>
+          <input id="tempInput" type="number" step="any" value="25">
+        </div>
+        <div style="margin-bottom: 8px;">
+          <label for="volGasInput">Volume (L)</label>
+          <input id="volGasInput" type="number" step="any" value="22.4">
+        </div>
+        <div style="background:var(--field); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <div class="row" style="justify-content: space-between;"><span class="hint">Pressure (atm):</span> <strong id="resPressure" style="color:var(--accent); font-size:18px;">1.09 atm</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 2: UNIT CONVERTER -->
+  <section id="tab-converter" hidden>
+    <div class="card grid2">
+      <div>
+        <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Temperature Conversion</h2>
+        <div style="margin-bottom: 12px;">
+          <label for="tempVal">Value</label>
+          <input id="tempVal" type="number" step="any" value="100">
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label for="tempUnit">From Unit</label>
+          <select id="tempUnit">
+            <option value="C">Celsius (°C)</option>
+            <option value="F">Fahrenheit (°F)</option>
+            <option value="K">Kelvin (K)</option>
+          </select>
+        </div>
+        <div style="background:var(--field); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <div class="row" style="justify-content: space-between;"><span class="hint">Celsius:</span> <strong id="outC">100.00 °C</strong></div>
+          <div class="row" style="justify-content: space-between;"><span class="hint">Fahrenheit:</span> <strong id="outF">212.00 °F</strong></div>
+          <div class="row" style="justify-content: space-between;"><span class="hint">Kelvin:</span> <strong id="outK">373.15 K</strong></div>
+        </div>
+      </div>
+
+      <div>
+        <h2 style="margin-top:0; font-size:16px; color:var(--accent);">Pressure Conversion</h2>
+        <div style="margin-bottom: 12px;">
+          <label for="pressVal">Atmospheres (atm)</label>
+          <input id="pressVal" type="number" step="any" value="1">
+        </div>
+        <div style="background:var(--field); padding:12px; border-radius:10px; border:1px solid var(--line);">
+          <div class="row" style="justify-content: space-between;"><span class="hint">Kilopascals (kPa):</span> <strong id="outKpa">101.325 kPa</strong></div>
+          <div class="row" style="justify-content: space-between;"><span class="hint">mmHg / Torr:</span> <strong id="outMmhg">760.00 mmHg</strong></div>
+          <div class="row" style="justify-content: space-between;"><span class="hint">psi:</span> <strong id="outPsi">14.696 psi</strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAB 3: SETTINGS -->
+  <section id="tab-settings" hidden>
+    <div class="card">
+      <h2 style="margin-top:0;">About ScienceStudio</h2>
+      <p class="hint">ScienceStudio is built for students, researchers, and science enthusiasts who need quick lab formula verification and unit conversions offline.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const THEME_KEY = 'sciencestudio_theme';
+  const btnTheme = document.getElementById('btnThemeToggle');
+  const metaTheme = document.getElementById('metaThemeColor');
+
+  function applyTheme(theme) {
+    const isLight = theme === 'light';
+    document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+    if (btnTheme) btnTheme.textContent = isLight ? '☀️ Day Shift' : '🌙 Night Shift';
+    if (metaTheme) metaTheme.setAttribute('content', isLight ? '#f4f7fb' : '#090d16');
+    localStorage.setItem(THEME_KEY, isLight ? 'light' : 'dark');
+  }
+
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  btnTheme.addEventListener('click', () => {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === 'light' ? 'dark' : 'light');
+  });
+
+  const tabs = document.querySelectorAll('.tabs button');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('on'));
+      tab.classList.add('on');
+      const target = tab.dataset.tab;
+      document.querySelectorAll('main > section').forEach(sec => {
+        sec.hidden = sec.id !== `tab-${target}`;
+      });
+    });
+  });
+
+  // Density Solver
+  const massInput = document.getElementById('massInput');
+  const volInput = document.getElementById('volInput');
+  const resDensity = document.getElementById('resDensity');
+
+  function calcDensity() {
+    const m = parseFloat(massInput.value) || 0;
+    const v = parseFloat(volInput.value) || 0;
+    const d = v > 0 ? m / v : 0;
+    resDensity.textContent = `${d.toFixed(2)} g/cm³`;
+  }
+  massInput.addEventListener('input', calcDensity);
+  volInput.addEventListener('input', calcDensity);
+
+  // Ideal Gas Law (P = nRT / V), R = 0.0821 L·atm/(mol·K)
+  const molesInput = document.getElementById('molesInput');
+  const tempInput = document.getElementById('tempInput');
+  const volGasInput = document.getElementById('volGasInput');
+  const resPressure = document.getElementById('resPressure');
+
+  function calcGas() {
+    const n = parseFloat(molesInput.value) || 0;
+    const tC = parseFloat(tempInput.value) || 0;
+    const v = parseFloat(volGasInput.value) || 0;
+    const tK = tC + 273.15;
+    const R = 0.0821;
+    const p = v > 0 ? (n * R * tK) / v : 0;
+    resPressure.textContent = `${p.toFixed(2)} atm`;
+  }
+  molesInput.addEventListener('input', calcGas);
+  tempInput.addEventListener('input', calcGas);
+  volGasInput.addEventListener('input', calcGas);
+
+  // Temperature Converter
+  const tempVal = document.getElementById('tempVal');
+  const tempUnit = document.getElementById('tempUnit');
+  const outC = document.getElementById('outC');
+  const outF = document.getElementById('outF');
+  const outK = document.getElementById('outK');
+
+  function calcTemp() {
+    const val = parseFloat(tempVal.value) || 0;
+    const unit = tempUnit.value;
+    let c = 0, f = 0, k = 0;
+
+    if (unit === 'C') {
+      c = val; f = (val * 9/5) + 32; k = val + 273.15;
+    } else if (unit === 'F') {
+      f = val; c = (val - 32) * 5/9; k = c + 273.15;
+    } else if (unit === 'K') {
+      k = val; c = val - 273.15; f = (c * 9/5) + 32;
+    }
+
+    outC.textContent = `${c.toFixed(2)} °C`;
+    outF.textContent = `${f.toFixed(2)} °F`;
+    outK.textContent = `${k.toFixed(2)} K`;
+  }
+  tempVal.addEventListener('input', calcTemp);
+  tempUnit.addEventListener('change', calcTemp);
+
+  // Pressure Converter
+  const pressVal = document.getElementById('pressVal');
+  const outKpa = document.getElementById('outKpa');
+  const outMmhg = document.getElementById('outMmhg');
+  const outPsi = document.getElementById('outPsi');
+
+  function calcPress() {
+    const atm = parseFloat(pressVal.value) || 0;
+    outKpa.textContent = `${(atm * 101.325).toFixed(3)} kPa`;
+    outMmhg.textContent = `${(atm * 760).toFixed(2)} mmHg`;
+    outPsi.textContent = `${(atm * 14.696).toFixed(3)} psi`;
+  }
+  pressVal.addEventListener('input', calcPress);
+
+  calcDensity();
+  calcGas();
+  calcTemp();
+  calcPress();
+})();
+</script>
+<script src="repo.js"></script>
+</body>
+</html>
